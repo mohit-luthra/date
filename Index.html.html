@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💌</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      font-family: 'Press Start 2P', monospace;
+      background: #0d0b1e;
+    }
+
+    .sky {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(180deg,
+        #080614 0%, #150f38 18%, #271660 38%,
+        #5b1a8a 58%, #a8185a 80%, #e84393 100%
+      );
+    }
+    .star {
+      position: fixed; background: #fff; z-index: 1;
+      animation: tw 2s ease-in-out infinite;
+    }
+    @keyframes tw { 0%,100%{opacity:1} 50%{opacity:.1} }
+
+    .mountains {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      z-index: 2; pointer-events: none;
+    }
+
+    .fparticle {
+      position: fixed; z-index: 3; pointer-events: none;
+      animation: fup linear infinite; opacity: 0; line-height: 1;
+    }
+    @keyframes fup {
+      0%  { transform: translateY(0) scale(var(--sc,1)); opacity: 0; }
+      8%  { opacity: .85; } 92% { opacity: .4; }
+      100%{ transform: translateY(-110vh) scale(var(--sc,1)); opacity: 0; }
+    }
+
+    /* film strip */
+    .filmstrip {
+      width: 76px; height: 46px; position: relative;
+      overflow: hidden; border: 2px solid #f472b6;
+      background: #0a0818; box-shadow: 0 0 14px rgba(244,114,182,.5);
+      margin: 0 auto 20px;
+    }
+    .filmstrip::before, .filmstrip::after {
+      content: ''; position: absolute; top: 0; bottom: 0; width: 7px; z-index: 2;
+      background: repeating-linear-gradient(
+        to bottom, transparent 0, transparent 4px,
+        #f472b6 4px, #f472b6 8px, transparent 8px, transparent 12px
+      );
+    }
+    .filmstrip::before{left:0;} .filmstrip::after{right:0;}
+    .film-frames {
+      position: absolute; left: 9px; right: 9px; top: 0;
+      display: flex; gap: 3px;
+      animation: sf 1.6s steps(1) infinite;
+    }
+    @keyframes sf {
+      0%{transform:translateX(0)} 25%{transform:translateX(-28px)}
+      50%{transform:translateX(-56px)} 75%{transform:translateX(-84px)}
+      100%{transform:translateX(0)}
+    }
+    .film-frame {
+      min-width: 25px; height: 46px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+
+    /* card */
+    .card {
+      position: relative; z-index: 20;
+      background: rgba(8,6,22,0.92);
+      border: 3px solid #f472b6;
+      padding: 36px 28px 32px;
+      max-width: 370px; width: 88vw; text-align: center;
+      box-shadow: 0 0 0 1px #080614, 0 0 0 5px #f472b6,
+        0 0 40px rgba(244,114,182,.4), inset 0 0 24px rgba(91,26,138,.2);
+      animation: pop .5s steps(5) both;
+    }
+    @keyframes pop { from{opacity:0;transform:scale(.75)} to{opacity:1;transform:scale(1)} }
+
+    .poem {
+      font-size: .62rem; color: #e9d5ff;
+      line-height: 2.8; margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(167,139,250,.3);
+    }
+    .poem em { color: #f9a8d4; font-style: normal; }
+
+    .divider {
+      height: 1px; margin: 0 auto 20px;
+      background: linear-gradient(90deg,transparent,#a78bfa 30%,#f472b6 50%,#a78bfa 70%,transparent);
+    }
+
+    h1 {
+      font-size: 1rem; color: #fff0f6;
+      line-height: 2.2; margin-bottom: 10px;
+      text-shadow: 3px 3px 0 #9d174d;
+    }
+    .dateline {
+      font-size: .6rem; color: #fde68a;
+      margin-bottom: 14px; line-height: 2;
+      text-shadow: 1px 1px 0 #78350f;
+    }
+    .subnote {
+      font-size: .48rem; color: #a78bfa;
+      line-height: 2.6; margin-bottom: 26px;
+    }
+    .subnote strong { color: #f9a8d4; font-weight: normal; }
+
+    /* ── THE KEY FIX ──
+       Both buttons share IDENTICAL styles.
+       They live side by side in normal flex flow — perfectly aligned.
+       JS will grab NO's position then switch it to fixed on first flee.
+    */
+    .btn-row {
+      display: flex; gap: 14px;
+      justify-content: center; align-items: stretch; /* stretch = same height */
+    }
+
+    .btn-yes, .btn-no {
+      /* Identical sizing */
+      padding: 14px 28px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: .68rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-yes {
+      background: #be185d; color: #fff;
+      box-shadow: 4px 4px 0 #5b0829;
+      transition: transform .05s, box-shadow .05s;
+    }
+    .btn-yes:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 #5b0829; }
+    .btn-yes:active { transform: translate(2px,2px);   box-shadow: 2px 2px 0 #5b0829; }
+
+    .btn-no {
+      background: #100e2a; color: #6b7280;
+      border: 2px solid #374151 !important;
+      box-shadow: 3px 3px 0 #000;
+      user-select: none; -webkit-user-select: none;
+      touch-action: none;
+      /* starts in-flow; JS sets position:fixed after grabbing rect */
+    }
+
+    /* success */
+    #success {
+      display: none; flex-direction: column;
+      align-items: center; gap: 14px;
+      animation: pop .5s steps(5) both;
+    }
+    #success h2 {
+      font-size: .8rem; color: #f472b6;
+      line-height: 2.2; text-shadow: 2px 2px 0 #9d174d;
+    }
+    #success .sfinal { font-size: .5rem; color: #ddd6fe; line-height: 2.6; }
+    #success .sfinal span { color: #fde68a; }
+  </style>
+</head>
+<body>
+
+<div class="sky"></div>
+<div id="fpc"></div>
+
+<svg class="mountains" viewBox="0 0 400 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="0,100 50,32 110,68 160,18 210,52 260,12 310,58 360,28 400,48 400,100" fill="#150f38"/>
+  <polygon points="0,100 0,78 60,56 130,73 200,50 270,68 340,53 400,63 400,100" fill="#271660"/>
+  <polygon points="0,100 0,91 55,82 120,89 200,79 280,87 360,79 400,85 400,100" fill="#150f38"/>
+</svg>
+
+<div class="card">
+  <div class="filmstrip">
+    <div class="film-frames">
+      <div class="film-frame">🌙</div><div class="film-frame">✦</div>
+      <div class="film-frame">🌸</div><div class="film-frame">✦</div>
+      <div class="film-frame">🌙</div><div class="film-frame">✦</div>
+    </div>
+  </div>
+
+  <div id="question">
+    <p class="poem">
+      You turn imagination<br>
+      into visuals —<br>
+      <em>I'd love to turn this into something real.</em>
+    </p>
+    <div class="divider"></div>
+    <h1>Will you go on a date with me?</h1>
+    <p class="dateline">✦ This Saturday evening? ✦</p>
+    <p class="subnote">
+      No timeline. No Exports.<br>No Visuals cues.<br>
+      <strong>Just us — unedited and original.</strong>
+    </p>
+    <div class="btn-row" id="btnRow">
+      <button class="btn-yes" id="btnYes">► YES</button>
+      <button class="btn-no"  id="btnNo" >► NO</button>
+    </div>
+  </div>
+
+  <div id="success">
+    <div class="filmstrip" style="margin-bottom:8px">
+      <div class="film-frames" style="animation-duration:.7s">
+        <div class="film-frame">✦</div><div class="film-frame">🌸</div>
+        <div class="film-frame">✦</div><div class="film-frame">🌙</div>
+        <div class="film-frame">✦</div><div class="film-frame">🌸</div>
+      </div>
+    </div>
+    <h2>IT'S A DATE ✦</h2>
+    <p class="sfinal">No script. No filter.<br><span>Just the two of us.❤︎</span></p>
+  </div>
+</div>
+
+<script>
+/* Stars */
+for (let i = 0; i < 100; i++) {
+  const s = document.createElement('div'); s.className = 'star';
+  const sz = Math.random()<.15?3:Math.random()<.4?2:1;
+  s.style.cssText=`width:${sz}px;height:${sz}px;border-radius:0;left:${Math.random()*100}vw;top:${Math.random()*72}vh;animation-delay:${Math.random()*4}s;animation-duration:${1.5+Math.random()*2.5}s;`;
+  document.body.appendChild(s);
+}
+
+/* Particles */
+const PARTS=['✦','✧','✦','✧','·'];
+const fpc=document.getElementById('fpc');
+function spawnP(){
+  const el=document.createElement('div'); el.className='fparticle';
+  el.style.setProperty('--sc',0.6+Math.random());
+  const col=Math.random()<.5?'244,114,182':'167,139,250';
+  el.style.cssText+=`left:${Math.random()*100}vw;bottom:-20px;animation-duration:${9+Math.random()*10}s;animation-delay:${Math.random()*6}s;font-size:${10+Math.random()*14}px;color:rgba(${col},${.4+Math.random()*.5});`;
+  el.textContent=PARTS[Math.floor(Math.random()*PARTS.length)];
+  fpc.appendChild(el); setTimeout(()=>el.remove(),20000);
+}
+for(let i=0;i<20;i++) spawnP();
+setInterval(spawnP,800);
+
+/* ── NO button ──
+   Starts in normal flow (perfectly aligned with YES).
+   On FIRST flee: grab its exact screen rect, switch to fixed at that
+   exact position (invisible jump), insert a same-size invisible ghost
+   to keep YES centred, then start flying.
+*/
+const btnNo  = document.getElementById('btnNo');
+const btnRow = document.getElementById('btnRow');
+let ready = false, attempts = 0, fleeing = false;
+
+function liftOff() {
+  if (ready) return;
+  ready = true;
+
+  // Capture exact position while still in flow
+  const r = btnNo.getBoundingClientRect();
+
+  // Insert ghost placeholder (same dimensions)
+  const ghost = document.createElement('div');
+  ghost.style.cssText =
+    `width:${r.width}px;height:${r.height}px;flex-shrink:0;visibility:hidden;`;
+  btnRow.appendChild(ghost);
+
+  // Switch NO to fixed at the exact same spot — no visual jump
+  btnNo.style.position = 'fixed';
+  btnNo.style.left   = r.left   + 'px';
+  btnNo.style.top    = r.top    + 'px';
+  btnNo.style.width  = r.width  + 'px';
+  btnNo.style.height = r.height + 'px';
+  btnNo.style.margin = '0';
+  btnNo.style.zIndex = '200';
+}
+
+function runAway(cx, cy) {
+  if (fleeing) return;
+  liftOff();
+  fleeing = true; attempts++;
+
+  const m=12, bw=btnNo.offsetWidth||90, bh=btnNo.offsetHeight||46;
+  const maxX=window.innerWidth-bw-m, maxY=window.innerHeight-bh-m;
+  let nx,ny,t=0;
+  do{ nx=m+Math.random()*maxX; ny=m+Math.random()*maxY; t++; }
+  while(Math.hypot(nx-cx,ny-cy)<180 && t<50);
+
+  btnNo.style.transition='left .18s cubic-bezier(.22,1,.36,1),top .18s cubic-bezier(.22,1,.36,1),transform .18s,opacity .18s';
+  btnNo.style.left=nx+'px'; btnNo.style.top=ny+'px';
+  btnNo.style.transform=`scale(${Math.max(0.45,1-attempts*.06)})`;
+  btnNo.style.opacity=Math.max(0.28,1-attempts*.08);
+  setTimeout(()=>{ fleeing=false; },220);
+}
+
+// Desktop hover
+btnNo.addEventListener('mouseover', e => runAway(e.clientX, e.clientY));
+
+// Mobile tap — preventDefault stops the click from firing
+btnNo.addEventListener('touchstart', e => {
+  e.preventDefault();
+  runAway(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+/* YES */
+document.getElementById('btnYes').addEventListener('click', () => {
+  document.getElementById('question').style.display = 'none';
+  btnNo.style.transition = 'opacity .5s';
+  btnNo.style.opacity = '0';
+  btnNo.style.pointerEvents = 'none';
+  document.getElementById('success').style.display = 'flex';
+  for(let i=0;i<20;i++) setTimeout(spawnP, i*60);
+});
+</script>
+</body>
+</html>
